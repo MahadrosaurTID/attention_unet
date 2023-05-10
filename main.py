@@ -3,29 +3,38 @@ from model import AttentionUNet
 from torchvision.utils import make_grid
 from train import train_and_test
 from loss import dice_coeff, FocalLoss
+from dataset import SegmentationDataset
 import torch.nn as nn
 
-
-data_dir = "/home/mahad/Downloads/mini_dataset"
-batch_size = 4
+batch_size = 1
 epochs = 100
-dataloaders = get_data_loaders(data_dir, batch_size=batch_size)
+# dataloaders = get_data_loaders(data_dir, batch_size=batch_size)
+
+data_transforms = {
+    # Resize((592, 576), (592, 576)),
+    'training': transforms.Compose([HorizontalFlip(), ApplyClaheColor(), Denoise(), ToTensor(), Normalize()]),
+    'test': transforms.Compose([HorizontalFlip(), ApplyClaheColor(), Denoise(), ToTensor(), Normalize()]),
+}
+
+train_ds = SegmentationDataset("/content/cropped_dataset/train_data", "images", "masks", data_transforms["training"],
+                               fraction=None, mask_colormode="rgb")
+val_ds = SegmentationDataset("//content/cropped_dataset/val_data", "images", "masks", data_transforms["test"],
+                             fraction=None, mask_colormode="rgb")
+dataloaders = {"training": DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=0),
+               "test": DataLoader(val_ds, batch_size=batch_size, shuffle=True, num_workers=0)}
 
 
 def train():
     model = AttentionUNet()
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     criterion = FocalLoss()
 
     trained_model = train_and_test(model, dataloaders, optimizer, criterion, num_epochs=epochs)
 
     return trained_model
 
-model = train()
-
 
 def plot_prediction(model, dataloaders):
-
     dataiter = iter(dataloaders['test'])
     batch = dataiter.next()
 
@@ -49,8 +58,8 @@ def plot_prediction(model, dataloaders):
     plt.show()
 
 
-'''trained_model = train()
-plot_prediction(trained_model, dataloaders)'''
+trained_model = train()
+plot_prediction(trained_model, dataloaders)
 
 plot_batch_from_dataloader(dataloaders, 4)
 

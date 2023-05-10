@@ -17,7 +17,7 @@ class SegmentationDataset(Dataset):
                  image_colormode='rgb',
                  mask_colormode='grayscale',
                  seed=42,
-                 fraction=0.7,
+                 fraction=0.8,
                  subset=None):
         """
         Args:

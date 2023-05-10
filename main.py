@@ -6,7 +6,7 @@ from loss import dice_coeff, FocalLoss
 from dataset import SegmentationDataset
 import torch.nn as nn
 
-batch_size = 1
+batch_size = 64
 epochs = 100
 # dataloaders = get_data_loaders(data_dir, batch_size=batch_size)
 
